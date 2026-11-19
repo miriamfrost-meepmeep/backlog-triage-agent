@@ -54,6 +54,8 @@ def grade(plan):
     mine = EXPECTED["po_ranking"]
     top3 = len(set(agent_order[:3]) & set(mine[:3]))
     moves = sum(abs(agent_order.index(t) - mine.index(t)) for t in mine if t in agent_order)
+    for n, s in enumerate(plan["stories"], 1):
+        print(f"   {n}. [{s['score']}] {agent_order[n-1]}: harm {s['employee_harm']}, size {s['complexity']}, deadline {s['urgency']}")
     print(f"   agent order: {', '.join(agent_order)}")
     print(f"   my order:    {', '.join(mine)}")
 

@@ -6,6 +6,7 @@
 import json
 import os
 import time
+from datetime import date
 from pathlib import Path
 
 import anthropic
@@ -16,7 +17,8 @@ ROOT = Path(__file__).resolve().parent
 MODEL = "claude-sonnet-5"
 FEEDBACK = json.load(open(ROOT / "data" / "feedback.json"))
 BACKLOG = json.load(open(ROOT / "data" / "backlog.json"))
-SYSTEM = (ROOT / "prompts" / "system.md").read_text()
+TODAY = date.fromisoformat(os.environ.get("TODAY", date.today().isoformat()))
+SYSTEM = (ROOT / "prompts" / "system.md").read_text() + f"\n\nToday's date is {TODAY.isoformat()}."
 RETRIES = 3
 
 # My prioritization criteria from isolved, as weights. Change these to change the ranking.
@@ -33,7 +35,7 @@ SCHEMA = {
         "stories": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "required": ["title", "as_a", "i_want", "so_that", "acceptance_criteria",
-                         "feedback_ids", "duplicate_of", "complexity", "deadline",
+                         "feedback_ids", "duplicate_of", "complexity", "deadline", "deadline_date",
                          "employee_harm", "harm_reason"],
             "properties": {
                 "title": {"type": "string"}, "as_a": {"type": "string"},
@@ -43,6 +45,7 @@ SCHEMA = {
                 "duplicate_of": {"type": ["string", "null"]},
                 "complexity": {"type": "string", "enum": ["S", "M", "L"]},
                 "deadline": {"type": ["string", "null"]},
+                "deadline_date": {"type": ["string", "null"]},
                 "employee_harm": {"type": "string", "enum": ["high", "medium", "low"]},
                 "harm_reason": {"type": "string"}}}},
         "unassigned": {"type": "array", "items": {
@@ -69,6 +72,24 @@ def draft():
     return json.loads(text), round(cost, 4)
 
 
+def urgency(deadline_date):
+    """How pressing a deadline is. Added after my second review: an overdue deadline
+    should count more than one that is months away. Returns (value, label)."""
+    if not deadline_date:
+        return 0.0, "none"
+    try:
+        days = (date.fromisoformat(deadline_date) - TODAY).days
+    except ValueError:
+        return 0.4, "unclear date"
+    if days < 0:
+        return 1.0, f"overdue by {-days} days"
+    if days <= 30:
+        return 0.7, f"due in {days} days"
+    if days <= 90:
+        return 0.4, f"due in {days} days"
+    return 0.2, f"due in {days} days"
+
+
 def score(plan):
     """Rank stories with my weights. The math is in code, not in the model, so it's explainable."""
     by_id = {f["id"]: f for f in FEEDBACK}
@@ -78,13 +99,14 @@ def score(plan):
         parts = {
             "frequency": min(len(items), 5) / 5,
             "contract": 1.0 if any(f["contract_commitment"] for f in items) else 0.0,
-            "deadline": 1.0 if s["deadline"] else 0.0,
+            "deadline": urgency(s["deadline_date"])[0],
             "revenue": min(sum(customers.values()), 300000) / 300000,
             "complexity": {"S": 1.0, "M": 0.5, "L": 0.0}[s["complexity"]],
             "harm": {"high": 1.0, "medium": 0.5, "low": 0.0}[s["employee_harm"]],
         }
         s["score"] = round(sum(WEIGHTS[k] * v for k, v in parts.items()), 2)
         s["arr_affected"] = sum(customers.values())
+        s["urgency"] = urgency(s["deadline_date"])[1]
     plan["stories"].sort(key=lambda s: s["score"], reverse=True)
     return plan
 
@@ -96,7 +118,7 @@ def show(plan):
         print(f"{n}. [{s['score']}] {s['title']}{dup}")
         print(f"   As a {s['as_a']}, I want {s['i_want']}, so that {s['so_that']}")
         print(f"   {len(s['feedback_ids'])} reports, ${s['arr_affected']:,} ARR, size {s['complexity']}"
-              + (f", deadline: {s['deadline']}" if s["deadline"] else ""))
+              + (f", deadline: {s['deadline']} ({s['urgency']})" if s["deadline"] else ""))
         print(f"   employee harm: {s['employee_harm']} ({s['harm_reason']})")
     if plan["unassigned"]:
         print("\nNot turned into stories:")
