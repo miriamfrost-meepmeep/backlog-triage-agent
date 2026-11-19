@@ -4,6 +4,7 @@
     TICKETS=down python triage.py
 """
 import json
+import os
 import time
 from pathlib import Path
 
@@ -19,7 +20,11 @@ SYSTEM = (ROOT / "prompts" / "system.md").read_text()
 RETRIES = 3
 
 # My prioritization criteria from isolved, as weights. Change these to change the ranking.
-WEIGHTS = {"frequency": 3, "contract": 4, "deadline": 3, "revenue": 2, "complexity": 2}
+# "harm" was added after my first review: the business signals missed harm to employees.
+# HARM=off turns it off, to compare with the original ranking.
+WEIGHTS = {"frequency": 3, "contract": 4, "deadline": 3, "revenue": 2, "complexity": 2, "harm": 5}
+if os.environ.get("HARM") == "off":
+    WEIGHTS["harm"] = 0
 
 SCHEMA = {
     "type": "object", "additionalProperties": False,
@@ -28,7 +33,8 @@ SCHEMA = {
         "stories": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "required": ["title", "as_a", "i_want", "so_that", "acceptance_criteria",
-                         "feedback_ids", "duplicate_of", "complexity", "deadline"],
+                         "feedback_ids", "duplicate_of", "complexity", "deadline",
+                         "employee_harm", "harm_reason"],
             "properties": {
                 "title": {"type": "string"}, "as_a": {"type": "string"},
                 "i_want": {"type": "string"}, "so_that": {"type": "string"},
@@ -36,7 +42,9 @@ SCHEMA = {
                 "feedback_ids": {"type": "array", "items": {"type": "string"}},
                 "duplicate_of": {"type": ["string", "null"]},
                 "complexity": {"type": "string", "enum": ["S", "M", "L"]},
-                "deadline": {"type": ["string", "null"]}}}},
+                "deadline": {"type": ["string", "null"]},
+                "employee_harm": {"type": "string", "enum": ["high", "medium", "low"]},
+                "harm_reason": {"type": "string"}}}},
         "unassigned": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "required": ["feedback_id", "reason", "note"],
@@ -73,6 +81,7 @@ def score(plan):
             "deadline": 1.0 if s["deadline"] else 0.0,
             "revenue": min(sum(customers.values()), 300000) / 300000,
             "complexity": {"S": 1.0, "M": 0.5, "L": 0.0}[s["complexity"]],
+            "harm": {"high": 1.0, "medium": 0.5, "low": 0.0}[s["employee_harm"]],
         }
         s["score"] = round(sum(WEIGHTS[k] * v for k, v in parts.items()), 2)
         s["arr_affected"] = sum(customers.values())
@@ -88,6 +97,7 @@ def show(plan):
         print(f"   As a {s['as_a']}, I want {s['i_want']}, so that {s['so_that']}")
         print(f"   {len(s['feedback_ids'])} reports, ${s['arr_affected']:,} ARR, size {s['complexity']}"
               + (f", deadline: {s['deadline']}" if s["deadline"] else ""))
+        print(f"   employee harm: {s['employee_harm']} ({s['harm_reason']})")
     if plan["unassigned"]:
         print("\nNot turned into stories:")
         for u in plan["unassigned"]:
