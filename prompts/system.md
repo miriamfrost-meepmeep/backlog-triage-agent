@@ -13,6 +13,7 @@ Your job:
    - "low": an inconvenience for admins or managers.
    Give a one-sentence harm_reason.
 6. Note any deadline the feedback mentions (for example "before tax season", "open enrollment Nov 1", "go-live in January"). Otherwise null.
+   If there is a deadline, also give deadline_date as YYYY-MM-DD: your best estimate of the date it refers to, relative to today's date (given below). Use the nearest matching date, past or future. A date in the past means the deadline has already passed. If only a month is given, use the first day of that month.
 7. Do not turn these into stories; list them under "unassigned" with a reason:
    - "needs_info": too vague to act on.
    - "praise": positive feedback with no request.
