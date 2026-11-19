@@ -1,0 +1,10 @@
+[
+ {"id":"ADO-101","title":"W-2 import fails for terminated employees in tax software","state":"Active"},
+ {"id":"ADO-102","title":"Add direct deposit split by percentage","state":"New"},
+ {"id":"ADO-103","title":"Export general ledger to QuickBooks Online","state":"New"},
+ {"id":"ADO-104","title":"Bulk approve time-off requests for managers","state":"New"},
+ {"id":"ADO-105","title":"Update state tax tables for 2027","state":"Active"},
+ {"id":"ADO-106","title":"Dark mode for employee self-service","state":"New"},
+ {"id":"ADO-107","title":"Import status dashboard: show errors by row and stage","state":"Active"},
+ {"id":"ADO-108","title":"Rate limit on public API for partners","state":"New"}
+]
