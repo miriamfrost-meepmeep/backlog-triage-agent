@@ -1,12 +1,80 @@
 {
  "themes": {
-  "w2_import":      {"items":["F01","F02","F03","F04","F05"], "duplicate_of":"ADO-101"},
-  "carrier_834":    {"items":["F06","F07","F08","F09"], "duplicate_of":null},
-  "mobile_geofence":{"items":["F10","F11","F12","F13"], "duplicate_of":null},
-  "bulk_pto":       {"items":["F14","F15","F16"], "duplicate_of":"ADO-104"},
-  "sso_loop":       {"items":["F17","F18","F19"], "duplicate_of":null},
-  "import_status":  {"items":["F20","F21","F22","F23"], "duplicate_of":"ADO-107"},
-  "paystub_spanish": {"items":["F24","F25","F26"], "duplicate_of":null}
+  "w2_import": {
+   "items": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05"
+   ],
+   "duplicate_of": "ADO-101"
+  },
+  "carrier_834": {
+   "items": [
+    "F06",
+    "F07",
+    "F08",
+    "F09"
+   ],
+   "duplicate_of": null
+  },
+  "mobile_geofence": {
+   "items": [
+    "F10",
+    "F11",
+    "F12",
+    "F13"
+   ],
+   "duplicate_of": null
+  },
+  "bulk_pto": {
+   "items": [
+    "F14",
+    "F15",
+    "F16"
+   ],
+   "duplicate_of": "ADO-104"
+  },
+  "sso_loop": {
+   "items": [
+    "F17",
+    "F18",
+    "F19"
+   ],
+   "duplicate_of": null
+  },
+  "import_status": {
+   "items": [
+    "F20",
+    "F21",
+    "F22",
+    "F23"
+   ],
+   "duplicate_of": "ADO-107"
+  },
+  "paystub_spanish": {
+   "items": [
+    "F24",
+    "F25",
+    "F26"
+   ],
+   "duplicate_of": null
+  }
  },
- "not_stories": {"F27":"needs_info","F28":"praise","F29":"needs_info","F30":"suspicious"}
+ "not_stories": {
+  "F27": "needs_info",
+  "F28": "praise",
+  "F29": "needs_info",
+  "F30": "suspicious"
+ },
+ "po_ranking": [
+  "carrier_834",
+  "w2_import",
+  "sso_loop",
+  "paystub_spanish",
+  "mobile_geofence",
+  "import_status",
+  "bulk_pto"
+ ]
 }
